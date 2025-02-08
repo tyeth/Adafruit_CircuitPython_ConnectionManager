@@ -45,6 +45,7 @@ ADAFRUIT_GROUPS = [
         "success": "yes",
         "fail": "no",
         "subdomains": [
+            {"host": "valid-isrgrootx2.letsencrypt.org"},
             {"host": "data-cloud.flightradar24.com"},
             {"host": "good-enough.technology"},
             {"host": "good-enough.cloud"},
