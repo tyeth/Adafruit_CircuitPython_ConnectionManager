@@ -21,9 +21,17 @@ except ImportError:
     # esp32spi pins set based on Adafruit AirLift FeatherWing
     # if using a different setup, please change appropriately
     spi = busio.SPI(board.SCK, board.MOSI, board.MISO)
-    esp32_cs = DigitalInOut(board.D13)
-    esp32_ready = DigitalInOut(board.D11)
-    esp32_reset = DigitalInOut(board.D12)
+
+    if hasattr(board, "ESP_CS"):
+        # If you are using a board with pre-defined ESP32 Pins:
+        esp32_cs = DigitalInOut(board.ESP_CS)
+        esp32_ready = DigitalInOut(board.ESP_BUSY)
+        esp32_reset = DigitalInOut(board.ESP_RESET)
+    else: # Adafruit AirLift Featherwing
+        esp32_cs = DigitalInOut(board.D13)
+        esp32_ready = DigitalInOut(board.D11)
+        esp32_reset = DigitalInOut(board.D12)
+
     radio = adafruit_esp32spi.ESP_SPIcontrol(spi, esp32_cs, esp32_ready, esp32_reset)
     onboard_wifi = False
 
@@ -37,6 +45,9 @@ ADAFRUIT_GROUPS = [
         "success": "yes",
         "fail": "no",
         "subdomains": [
+            {"host": "data-cloud.flightradar24.com"},
+            {"host": "good-enough.technology"},
+            {"host": "good-enough.cloud"},
             {"host": "api.coindesk.com"},
             {"host": "api.covidtracking.com"},
             {"host": "api.developer.lifx.com"},
@@ -296,8 +307,8 @@ def check_group(groups, group_name):
                     timeout=10,
                 )
                 connection_manager.close_socket(socket)
-            except RuntimeError as e:
-                exc = e
+            except (BrokenPipeError,RuntimeError) as e:
+                exc = f"{e.__class__.__name__}: {e}"
             duration = time.monotonic() - start_time
 
             if fail == "yes" and exc and common_failure(exc):
